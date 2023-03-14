@@ -1,2 +1,0 @@
-# footbal_graphql
- 
