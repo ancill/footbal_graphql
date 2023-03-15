@@ -1,5 +1,7 @@
+import { Team } from '@prisma/client'
 import { Context } from './context'
 import axios from 'axios'
+
 const fetchCompetitionsApi = async (leagueCode: string, prefix?: string) => {
   try {
     const { data } = await axios.get(
@@ -74,62 +76,40 @@ export const resolvers = {
       { leagueCode }: { leagueCode: string },
       context: Context,
     ) => {
-      // just only for area
-      const {
-        data: { name, code, area },
-      } = await fetchCompetitionsApi(leagueCode)
+      const competitionResult = await fetchCompetitionsApi(leagueCode)
 
+      // created competition and team assigned to it
       const createdCompetition = await context.prisma.competition.create({
         data: {
-          name: name,
-          code: code,
-          areaName: area.name,
+          name: competitionResult.data.name,
+          code: competitionResult.data.code,
+          areaName: competitionResult.data.area.code,
         },
       })
 
-      const {
-        data: { teams },
-      } = await fetchCompetitionsApi(leagueCode, 'teams')
+      const teamResult = await fetchCompetitionsApi(leagueCode, 'team')
 
-      teams.forEach(async (team) => {
-        await context.prisma.competition.update({
-          where: {
-            id: createdCompetition.id,
-          },
-          data: {
-            teams: {
-              create: [
-                {
-                  areaName: team.area.name,
-                  name: team.name,
-                  shortName: team.shortName,
-                  tla: team.tla,
-                  address: team.address,
-                  coach: {
-                    create: {
-                      name: team.coach.name,
-                      dateOfBirth: team.coach.dateOfBirth,
-                      nationality: team.coach.nationality,
-                    },
-                  },
-                  players: {
-                    create: team.squad,
-                  },
-                },
-              ],
-            },
-          },
-        })
+      // create team
+      const teams = await context.prisma.team.create({
+        data: {},
       })
 
-      return context.prisma.competition.findUnique({
-        where: {
-          id: createdCompetition.id,
-        },
-        include: {
-          teams: true,
-        },
-      })
+      //  areaName: team.area.name,
+      //         name: team.name,
+      //         shortName: team.shortName,
+      //         tla: team.tla,
+      //         address: team.address,
+      //         coach: {
+      //           create: {
+      //             name: team.coach.name,
+      //             dateOfBirth: team.coach.dateOfBirth,
+      //             nationality: team.coach.nationality,
+      //           },
+      //         },
+      //         players: {
+      //           create: team.squad,
+      //         },
+      return createdCompetition
     },
   },
 }

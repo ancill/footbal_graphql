@@ -8,10 +8,10 @@ datasource db {
 }
 
 model Competition {
-  id       Int    @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   name     String
   code     String
-  areaName String
+  areaName String?
   teams    Team[]
 }
 
