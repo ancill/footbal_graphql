@@ -1,6 +1,7 @@
 import { DateTimeResolver } from 'graphql-scalars'
 import { Context } from './context'
 import axios from 'axios'
+import { error } from 'console'
 
 enum SortOrder {
   asc = 'asc',
@@ -107,26 +108,26 @@ export const resolvers = {
       { leagueCode }: { leagueCode: string },
       context: Context,
     ) => {
-      try {
-        const { data } = await axios.get(
-          `https://api.football-data.org/v4/competitions/${leagueCode}/teams`,
-          {
-            headers: {
-              'X-Auth-Token': '2bfccee4efd549f5b0f6d36af8c00802',
-            },
+      const {
+        data: { name, code, area },
+      } = await axios.get(
+        `https://api.football-data.org/v4/competitions/${leagueCode}`,
+        {
+          headers: {
+            'X-Auth-Token': '2bfccee4efd549f5b0f6d36af8c00802',
           },
-        )
-      } catch (error) {
-        console.log(error)
-      }
+        },
+      )
 
-      //   return context.prisma.competition.create({
-      //     data: {
-      //       name: competition.name,
-      //       code: competition.code,
-      //       areaName: competition.area,
-      //     },
-      //   })
+      const createdCompetition = await context.prisma.competition.create({
+        data: {
+          name: name,
+          code: code,
+          areaName: area.name,
+        },
+      })
+
+      return createdCompetition
     },
     // signupUser: (
     //   _parent,
@@ -223,15 +224,6 @@ export const resolvers = {
     // },
   },
   DateTime: DateTimeResolver,
-  //   Post: {
-  //     author: (parent, _args, context: Context) => {
-  //       return context.prisma.post
-  //         .findUnique({
-  //           where: { id: parent?.id },
-  //         })
-  //         .author()
-  //     },
-  //   },
   //   User: {
   //     posts: (parent, _args, context: Context) => {
   //       return context.prisma.user
