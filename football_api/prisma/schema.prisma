@@ -7,29 +7,43 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  name    String?
-  posts   Post[]
-  profile Profile?
+model Competition {
+  id       Int    @id @default(autoincrement())
+  name     String
+  code     String
+  areaName String
+  Team     Team[]
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  viewCount Int      @default(0)
-  author    User?    @relation(fields: [authorId], references: [id])
-  authorId  Int?
+model Team {
+  id            Int          @id @default(autoincrement())
+  name          String
+  tla           String
+  shortName     String
+  areaName      String
+  address       String?
+  competition   Competition? @relation(fields: [competitionId], references: [id]) // one-to-many relationship with Competition
+  players       Player[] // one-to-many relationship with Player
+  coach         Coach?
+  competitionId Int?
+  coachId       Int?
 }
 
-model Profile {
-  id     Int     @id @default(autoincrement())
-  bio    String?
-  user   User    @relation(fields: [userId], references: [id])
-  userId Int     @unique
+model Player {
+  id          Int    @id @default(autoincrement())
+  name        String
+  position    String
+  dateOfBirth String
+  nationality String
+  team        Team?  @relation(fields: [teamId], references: [id]) // one-to-many relationship with Team
+  teamId      Int?
+}
+
+model Coach {
+  id          Int     @id @default(autoincrement())
+  name        String
+  dateOfBirth String?
+  nationality String?
+  teamId      Int?    @unique
+  team        Team?   @relation(fields: [teamId], references: [id]) // one-to-one relationship with Team
 }

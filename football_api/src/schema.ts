@@ -1,73 +1,44 @@
 export const typeDefs = /* GraphQL */ `
-  type Mutation {
-    createDraft(authorEmail: String!, data: PostCreateInput!): Post
-    deletePost(id: Int!): Post
-    incrementPostViewCount(id: Int!): Post
-    signupUser(data: UserCreateInput!): User!
-    togglePublishPost(id: Int!): Post
-    addProfileForUser(bio: String, userUniqueInput: UserUniqueInput): Profile
+  type Competition {
+    id: ID!
+    name: String!
+    code: String!
+    areaName: String!
   }
 
-  type Post {
-    author: User
-    content: String
-    createdAt: DateTime!
-    id: Int!
-    published: Boolean!
-    title: String!
-    updatedAt: DateTime!
-    viewCount: Int!
+  type Team {
+    id: ID!
+    name: String!
+    tla: String!
+    shortName: String!
+    areaName: String!
+    address: String
+    players: [Player]
+    coach: Coach
   }
 
-  input PostCreateInput {
-    content: String
-    title: String!
+  type Player {
+    id: ID!
+    name: String!
+    position: String!
+    dateOfBirth: String!
+    nationality: String!
   }
 
-  input PostOrderByUpdatedAtInput {
-    updatedAt: SortOrder!
+  type Coach {
+    id: ID!
+    name: String!
+    dateOfBirth: String
+    nationality: String
   }
 
   type Query {
-    allUsers: [User!]!
-    draftsByUser(userUniqueInput: UserUniqueInput!): [Post]
-    feed(
-      orderBy: PostOrderByUpdatedAtInput
-      searchString: String
-      skip: Int
-      take: Int
-    ): [Post!]!
-    postById(id: Int): Post
+    players(leagueCode: String!, teamName: String): [Player]
+    team(name: String!, withPlayers: Boolean = false): Team
   }
 
-  enum SortOrder {
-    asc
-    desc
-  }
-
-  type User {
-    email: String!
-    id: Int!
-    name: String
-    posts: [Post!]!
-    profile: Profile
-  }
-
-  input UserCreateInput {
-    email: String!
-    name: String
-    posts: [PostCreateInput!]
-  }
-
-  input UserUniqueInput {
-    email: String
-    id: Int
-  }
-
-  type Profile {
-    id: ID!
-    bio: String
-    user: User
+  type Mutation {
+    importLeague(leagueCode: String!): Boolean
   }
 
   scalar DateTime
