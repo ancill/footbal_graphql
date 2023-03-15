@@ -12,7 +12,7 @@ model Competition {
   name     String
   code     String
   areaName String
-  Team     Team[]
+  teams    Team[]
 }
 
 model Team {

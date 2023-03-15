@@ -38,7 +38,7 @@ export const typeDefs = /* GraphQL */ `
   }
 
   type Mutation {
-    importLeague(leagueCode: String!): Boolean
+    importLeague(leagueCode: String!): Competition
   }
 
   scalar DateTime
