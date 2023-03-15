@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Competition {
@@ -17,10 +17,10 @@ model Competition {
 
 model Team {
   id            Int          @id @default(autoincrement())
-  name          String
-  tla           String
-  shortName     String
-  areaName      String
+  name          String?
+  tla           String?
+  shortName     String?
+  areaName      String?
   address       String?
   competition   Competition? @relation(fields: [competitionId], references: [id]) // one-to-many relationship with Competition
   players       Player[] // one-to-many relationship with Player
@@ -30,12 +30,12 @@ model Team {
 }
 
 model Player {
-  id          Int    @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String
-  position    String
-  dateOfBirth String
-  nationality String
-  team        Team?  @relation(fields: [teamId], references: [id]) // one-to-many relationship with Team
+  position    String?
+  dateOfBirth String?
+  nationality String?
+  team        Team?   @relation(fields: [teamId], references: [id]) // one-to-many relationship with Team
   teamId      Int?
 }
 

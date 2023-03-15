@@ -33,12 +33,16 @@ export const typeDefs = /* GraphQL */ `
   }
 
   type Query {
-    players(leagueCode: String!, teamName: String): [Player]
-    team(name: String!, withPlayers: Boolean = false): Team
+    players(leagueCode: String!, teamName: String): [Player]!
+    team(name: String!, withPlayers: Boolean = false): Team!
   }
 
   type Mutation {
     importLeague(leagueCode: String!): Competition
+  }
+
+  type Error {
+    message: String!
   }
 
   scalar DateTime

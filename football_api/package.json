@@ -3,7 +3,11 @@
   "scripts": {
     "start": "node dist/server",
     "dev:debug": "ts-node-dev --no-notify --respawn --inspect=4321  --transpile-only src/server",
-    "dev": "ts-node-dev --no-notify --respawn --transpile-only src/server"
+    "dev": "ts-node-dev --no-notify --respawn --transpile-only src/server",
+    "studio": "prisma studio",
+    "postinstall": "prisma generate",
+    "reset": "NODE_ENV=development npx prisma db push --force-reset && npx prisma db push && npm run db-seed",
+    "db-seed": "NODE_ENV=development prisma db seed"
   },
   "prettier": {
     "semi": false,

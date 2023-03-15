@@ -1,551 +1,85 @@
-# Santex Back-end Developer Hiring Test
+GraphQL Import League Implementation
+==============
 
+This project is a GraphQL server that retrieves data from the [Football Data API](http://www.football-data.org/) and stores it in a PostgreSQL database using [Prisma](https://www.prisma.io/). The server is built with [Fastify](https://www.fastify.io/) and [Mercurius](https://mercurius.dev/) and uses [GraphQL Scalars](https://github.com/Urigo/graphql-scalars) to handle custom scalar types.
 
-This project implement a **GraphQL server (SDL-first) with TypeScript** with the following stack:
+Getting Started
+---------------
 
-- [**Mercurius**](https://mercurius.dev/): GraphQL adapter for Fastify
-- [**Fastify**](https://www.fastify.io/): Fast and low overhead web framework for building Node.js applications
-- [**GraphQL Nexus**](https://nexusjs.org/docs/): GraphQL schema definition and resolver implementation 
-- [**Prisma Client**](https://www.prisma.io/docs/concepts/components/prisma-client): Databases access (ORM)
-- [**Prisma Migrate**](https://www.prisma.io/docs/concepts/components/prisma-migrate): Database migrations
-- [**SQLite**](https://www.sqlite.org/index.html): Local, file-based SQL database
+To run this project, you'll need to have [Docker](https://www.docker.com/) and [Node.js](https://nodejs.org/) installed on your machine.
 
-## Getting started
+1. Clone the repository
+2. Create a `.env` file in the root directory and set the `FOOTBALL_API_TOKEN` variable to your Football Data API token
+3. Run `docker-compose up` to start the PostgreSQL database
+4. Run `pnpm install` to install the dependencies
+5. Run `pnpm run reset` to create the schema and seed the database
+6. Run `pnpm run dev` to start the server
 
-### 1. Install dependencies
+The server will be running on `http://localhost:4000/graphql`.
 
-Install npm dependencies:
+Environment Variables
+---------------------
 
-```
-pnpm install
-```
+The following environment variables can be set to configure the API:
 
-### 2. Create and seed the database
+* `FOOTBALL_API_TOKEN`: Your [football-data.org](http://www.football-data.org/) API token.
 
-Run the following command to create your SQLite database file. This also creates the `User` and `Post` tables that are defined in [`prisma/schema.prisma`](./prisma/schema.prisma):
+* `DATABASE_URL`: The URL of the PostgreSQL database. The default value is `"postgresql://sammy:your_password@localhost:5432/my-blog?schema=public"`.
 
-```
-npx prisma migrate dev --name init
-```
+Scripts
+-------
 
-When `npx prisma migrate dev` is executed against a newly created database, seeding is also triggered. The seed file in [`prisma/seed.ts`](./prisma/seed.ts) will be executed and your database will be populated with the sample data.
+* `npm start` - starts the server
+* `npm run dev` - starts the server in development mode with automatic reloading using `ts-node-dev`
+* `npm run dev:debug` - starts the server in development mode with debugging enabled
+* `npm run studio` - opens the Prisma studio for exploring the database
+* `npm run reset` - recreates the schema and seeds the database
+* `npm run db-seed` - seeds the database with data
+* `npm run build` - builds the project to the `dist` directory
+* `npm run lint` - runs ESLint on the project
+* `npm run format` - formats the code using Prettier
 
+Dependencies
+------------
 
-### 3. Start the GraphQL server
+* `@graphql-tools/schema` - tool for building GraphQL schemas
+* `@prisma/client` - Prisma client for accessing the database
+* `axios` - Promise based HTTP client for making API requests
+* `fastify` - web framework for building fast servers
+* `graphql` - query language for APIs
+* `graphql-scalars` - library of custom scalar types for GraphQL
+* `mercurius` - plugin for Fastify that adds support for GraphQL
 
-Launch your GraphQL server with this command:
+Dev Dependencies
+----------------
 
-```
-npm run dev
-```
+* `@types/node` - TypeScript type definitions for Node.js
+* `prisma` - ORM for working with databases
+* `ts-node` - TypeScript execution and REPL for Node.js
+* `ts-node-dev` - development tool that automatically restarts the Node.js process
+* `typescript` - programming language that extends JavaScript
 
-Navigate to [http://localhost:4000/graphiql](http://localhost:4000/graphiql) in your browser to explore the API of your GraphQL server in a [GraphiQL](https://github.com/graphql/graphiql).
+Database
+--------
 
+This project uses PostgreSQL as the database. The database is configured using Docker Compose in the `docker-compose.yml` file. The schema is managed using Prisma, and the data is seeded using a script in the `prisma/seed.ts` file.
 
-## Using the GraphQL API
+The `reset` script recreates the schema and seeds the database with data. If you want to seed the database with additional data, you can modify the `prisma/seed.ts` file and run the `db-seed` script.
 
-The schema that specifies the API operations of your GraphQL server is defined in [`./schema.graphql`](./schema.graphql). Below are a number of operations that you can send to the API using the GraphQL Playground.
+API
+---
 
-Feel free to adjust any operation by adding or removing fields. The GraphQL Playground helps you with its auto-completion and query validation features.
+The GraphQL API has two endpoints:
 
-### Retrieve all published posts and their authors
+* `/graphql` - the main GraphQL endpoint
+* `/graphql/playground` - a web-based IDE for exploring the API
 
-```graphql
-query {
-  feed {
-    id
-    title
-    content
-    published
-    author {
-      id
-      name
-      email
-    }
-  }
-}
-```
+### Queries
 
-<details><summary><strong>See more API operations</strong></summary>
+* `players(leagueCode: String!, teamName: String): [Player!]!` - retrieves a list of players for all teams in a given league. If a team name is provided, the list is filtered to include only players for that team.  If the given leagueCode is not present in the DB, it should respond with an error message.
 
-### Retrieve the drafts of a user
+* `team(name: String!, withPlayers: Boolean = false): Team` - takes a name and returns the corresponding team. Additionally, if requested in the query, it should resolve the players for that team (or coaches, if players are not available at the moment of implementation).
 
-```graphql
-{
-  draftsByUser(
-    userUniqueInput: {
-      email: "mahmoud@prisma.io"
-    }
-  ) {
-    id
-    title
-    content
-    published
-    author {
-      id
-      name
-      email
-    }
-  }
-}
-```
+___
 
-
-### Create a new user
-
-```graphql
-mutation {
-  signupUser(data: { name: "Sarah", email: "sarah@prisma.io" }) {
-    id
-  }
-}
-```
-
-### Create a new draft
-
-```graphql
-mutation {
-  createDraft(
-    data: { title: "Join the Prisma Slack", content: "https://slack.prisma.io" }
-    authorEmail: "alice@prisma.io"
-  ) {
-    id
-    viewCount
-    published
-    author {
-      id
-      name
-    }
-  }
-}
-```
-
-### Publish/unpublish an existing post
-
-```graphql
-mutation {
-  togglePublishPost(id: __POST_ID__) {
-    id
-    published
-  }
-}
-```
-
-Note that you need to replace the `__POST_ID__` placeholder with an actual `id` from a `Post` record in the database, e.g.`5`:
-
-```graphql
-mutation {
-  togglePublishPost(id: 5) {
-    id
-    published
-  }
-}
-```
-
-### Increment the view count of a post
-
-```graphql
-mutation {
-  incrementPostViewCount(id: __POST_ID__) {
-    id
-    viewCount
-  }
-}
-```
-
-Note that you need to replace the `__POST_ID__` placeholder with an actual `id` from a `Post` record in the database, e.g.`5`:
-
-```graphql
-mutation {
-  incrementPostViewCount(id: 5) {
-    id
-    viewCount
-  }
-}
-```
-
-### Search for posts that contain a specific string in their title or content
-
-```graphql
-{
-  feed(
-    searchString: "prisma"
-  ) {
-    id
-    title
-    content
-    published
-  }
-}
-```
-
-### Paginate and order the returned posts
-
-```graphql
-{
-  feed(
-    skip: 2
-    take: 2
-    orderBy: { updatedAt: desc }
-  ) {
-    id
-    updatedAt
-    title
-    content
-    published
-  }
-}
-```
-
-### Retrieve a single post
-
-```graphql
-{
-  postById(id: __POST_ID__ ) {
-    id
-    title
-    content
-    published
-  }
-}
-```
-
-Note that you need to replace the `__POST_ID__` placeholder with an actual `id` from a `Post` record in the database, e.g.`5`:
-
-```graphql
-{
-  postById(id: 5 ) {
-    id
-    title
-    content
-    published
-  }
-}
-```
-
-### Delete a post
-
-```graphql
-mutation {
-  deletePost(id: __POST_ID__) {
-    id
-  }
-}
-```
-
-Note that you need to replace the `__POST_ID__` placeholder with an actual `id` from a `Post` record in the database, e.g.`5`:
-
-```graphql
-mutation {
-  deletePost(id: 5) {
-    id
-  }
-}
-```
-
-</details>
-
-## Evolving the app
-
-Evolving the application typically requires two steps:
-
-1. Migrate your database using Prisma Migrate
-1. Update your application code
-
-For the following example scenario, assume you want to add "profile" feature to the app where users can create a profile and write a short bio about themselves.
-
-### 1. Migrate your database using Prisma Migrate
-
-The first step is to add a new table, e.g. called `Profile`, to the database. You can do this by adding a new model to your [Prisma schema file](./prisma/schema.prisma) file and then running a migration afterwards:
-
-```diff
-// ./prisma/schema.prisma
-
-model User {
-  id      Int      @default(autoincrement()) @id
-  name    String?
-  email   String   @unique
-  posts   Post[]
-+ profile Profile?
-}
-
-model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  viewCount Int      @default(0)
-  author    User?    @relation(fields: [authorId], references: [id])
-  authorId  Int?
-}
-
-+model Profile {
-+  id     Int     @default(autoincrement()) @id
-+  bio    String?
-+  user   User    @relation(fields: [userId], references: [id])
-+  userId Int     @unique
-+}
-```
-
-Once you've updated your data model, you can execute the changes against your database with the following command:
-
-```
-npx prisma migrate dev --name add-profile
-```
-
-This adds another migration to the `prisma/migrations` directory and creates the new `Profile` table in the database.
-
-### 2. Update your application code
-
-You can now use your `PrismaClient` instance to perform operations against the new `Profile table.
-Those operations can be used to implement queries and mutations in the GraphQL API
-
-#### 2.1 Add the `Profile` type to your GraphQL schema
-
-First, add a new GraphQL type to your existing `typeDefs`:
-
-```diff
-// ./src/schema.ts
-
-+type Profile {
-+  id: ID!
-+  bio: String
-+  user: User
-+}
-
-type User {
-  email: String!
-  id: ID!
-  name: String
-  posts: [Post!]!
-+  profile: Profile
-}
-```
-
-Don't forget to include `Profile` and update `User` root types in the `resolvers` object
-
-```diff
-
-const resolvers ={
-  Query: { /** as before */ },
-  Mutation: { /** as before */ },
-  DateTime: DateTimeResolver,
-  Post: { /** as before */ },
-  User: {
-    posts: (parent, _args, context: Context) => {
-      return context.prisma.user.findUnique({
-        where: { id: parent?.id }
-      }).posts()
-    },
-+    profile: (parent, _args, context: Context) => {
-+      return context.prisma.user.findUnique({
-+        where: { id: parent?.id }
-+      }).profile()
-+    }
-  },
-+  Profile: {
-+    user: (parent, _args, context: Context) => {
-+      return context.prisma.profile.findUnique({
-+        where: { id: parent?.id }
-+      }).user()
-+    }
-+  }
-}
-```
-
-#### 2.2 Add a `createProfile` GraphQL mutation
-
-```diff
-// ./src/schema.ts
-
-const typeDefs = `
-// other types
-
-type Mutation {
-  createDraft(authorEmail: String!, data: PostCreateInput!): Post
-  deletePost(id: Int!): Post
-  incrementPostViewCount(id: Int!): Post
-  signupUser(data: UserCreateInput!): User!
-  togglePublishPost(id: Int!): Post
-+  addProfileForUser(bio: String, userUniqueInput: UserUniqueInput): Profile
-}
-`
-
-const resolvers ={
-  Query: { /** as before */ },
-  Mutation: {
-    // other mutations
-
-+    addProfileForUser: (_parent, args: { userUniqueInput: UserUniqueInput, bio: string }, context: Context) => {
-+      return context.prisma.profile.create({
-+        data: {
-+          bio: args.bio,
-+          user: {
-+            connect: {
-+              id: args.userUniqueInput?.id,
-+              email: args.userUniqueInput?.email
-+            }
-+          }
-+        }
-+      })
-+    }
-  },
-  DateTime: DateTimeResolver,
-  Post: { /** as before */ },
-  User: { /** as before */},
-  Profile: { /** as before */  }
-}
-```
-
-
-Finally, you can test the new mutation like this:
-
-```graphql
-mutation {
-  addProfileForUser(
-    userUniqueInput: {
-      email: "mahmoud@prisma.io"
-    }
-    bio: "I like turtles"
-  ) {
-    id
-    bio
-    user {
-      id
-      name
-    }
-  }
-}
-```
-
-<details><summary>Expand to view more sample Prisma Client queries on <code>Profile</code></summary>
-
-Here are some more sample Prisma Client queries on the new <code>Profile</code> model:
-
-##### Create a new profile for an existing user
-
-```ts
-const profile = await prisma.profile.create({
-  data: {
-    bio: 'Hello World',
-    user: {
-      connect: { email: 'alice@prisma.io' },
-    },
-  },
-})
-```
-
-##### Create a new user with a new profile
-
-```ts
-const user = await prisma.user.create({
-  data: {
-    email: 'john@prisma.io',
-    name: 'John',
-    profile: {
-      create: {
-        bio: 'Hello World',
-      },
-    },
-  },
-})
-```
-
-##### Update the profile of an existing user
-
-```ts
-const userWithUpdatedProfile = await prisma.user.update({
-  where: { email: 'alice@prisma.io' },
-  data: {
-    profile: {
-      update: {
-        bio: 'Hello Friends',
-      },
-    },
-  },
-})
-```
-
-</details>
-
-
-## Switch to another database (e.g. PostgreSQL, MySQL, SQL Server, MongoDB)
-
-If you want to try this example with another database than SQLite, you can adjust the the database connection in [`prisma/schema.prisma`](./prisma/schema.prisma) by reconfiguring the `datasource` block. 
-
-Learn more about the different connection configurations in the [docs](https://www.prisma.io/docs/reference/database-reference/connection-urls).
-
-<details><summary>Expand for an overview of example configurations with different databases</summary>
-
-### PostgreSQL
-
-For PostgreSQL, the connection URL has the following structure:
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = "postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA"
-}
-```
-
-Here is an example connection string with a local PostgreSQL database:
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = "postgresql://janedoe:mypassword@localhost:5432/notesapi?schema=public"
-}
-```
-
-### MySQL
-
-For MySQL, the connection URL has the following structure:
-
-```prisma
-datasource db {
-  provider = "mysql"
-  url      = "mysql://USER:PASSWORD@HOST:PORT/DATABASE"
-}
-```
-
-Here is an example connection string with a local MySQL database:
-
-```prisma
-datasource db {
-  provider = "mysql"
-  url      = "mysql://janedoe:mypassword@localhost:3306/notesapi"
-}
-```
-
-### Microsoft SQL Server
-
-Here is an example connection string with a local Microsoft SQL Server database:
-
-```prisma
-datasource db {
-  provider = "sqlserver"
-  url      = "sqlserver://localhost:1433;initial catalog=sample;user=sa;password=mypassword;"
-}
-```
-
-### MongoDB
-
-Here is an example connection string with a local MongoDB database:
-
-```prisma
-datasource db {
-  provider = "mongodb"
-  url      = "mongodb://USERNAME:PASSWORD@HOST/DATABASE?authSource=admin&retryWrites=true&w=majority"
-}
-```
-
-</details>
-
-## Next steps
-
-- Check out the [Prisma docs](https://www.prisma.io/docs)
-- Share your feedback in the [`#product-wishlist`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the [Prisma Slack](https://slack.prisma.io/)
-- Create issues and ask questions on [GitHub](https://github.com/prisma/prisma/)
-- Watch our biweekly "What's new in Prisma" livestreams on [Youtube](https://www.youtube.com/channel/UCptAHlN1gdwD89tFM3ENb6w)
+### Made by [Ivan Arsenev](https://github.com/ancill)
