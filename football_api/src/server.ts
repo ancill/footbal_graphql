@@ -16,6 +16,7 @@ const schema = app.register(mercurius, {
   schema: makeExecutableSchema({
     resolvers,
     typeDefs,
+    d,
   }),
   graphiql: true,
   context: () => context,
