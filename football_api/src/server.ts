@@ -29,4 +29,4 @@ app.listen({ port: 4000 }, (err) => {
   console.log(`\
   🚀 Server ready at: http://localhost:4000/graphiql
   `)
-})
+})s
