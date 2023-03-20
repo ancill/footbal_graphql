@@ -24,7 +24,7 @@ const schema = app.register(mercurius, {
 app.listen({ port: 4000 }, (err) => {
   if (err) {
     console.error(err)
-    process.exit(1)
+    process.exit(1)s
   }
   console.log(`\
   🚀 Server ready at: http://localhost:4000/graphiql
