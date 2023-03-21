@@ -77,7 +77,6 @@ export const resolvers = {
               coachId: team.coach.id,
             } as Team),
         ),
-        d,
       })
 
       // creating coaches
